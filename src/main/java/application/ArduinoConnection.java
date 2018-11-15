@@ -1,8 +1,8 @@
 package application;
 
 import gnu.io.NRSerialPort;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.DataInputStream;
@@ -12,11 +12,17 @@ import java.io.IOException;
 @Component
 public class ArduinoConnection {
     private NRSerialPort serial;
+    @Value("${conn.port}")
+    private String connectionPort;
+    @Value("${conn.bauds}")
+    private int connectionBauds;
+    @Value("${request.char}")
+    private char reqChar;
 
     @PostConstruct
     public void connect()
     {
-        serial = new NRSerialPort("COM3", 9600);
+        serial = new NRSerialPort(connectionPort, connectionBauds);
         serial.connect();
 
         if(serial.isConnected())
@@ -28,7 +34,7 @@ public class ArduinoConnection {
     @PreDestroy
     public void disconnect()
     {
-        if(serial.isConnected() && serial != null)
+        if(serial != null && serial.isConnected())
         {
             serial.disconnect();
 
@@ -40,7 +46,7 @@ public class ArduinoConnection {
     public int getLineInteger() throws IOException {
         DataInputStream inputStream = new DataInputStream(serial.getInputStream());
         DataOutputStream outputStream = new DataOutputStream(serial.getOutputStream());
-        outputStream.write('g');
+        outputStream.write(reqChar);
         return inputStream.read();
     }
 
